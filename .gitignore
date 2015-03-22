@@ -1,2 +1,5 @@
 *.pdf
 *.txt
+.project
+.classpath
+/scala/*.class
