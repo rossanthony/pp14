@@ -38,41 +38,46 @@ class Book
     @id = id
     @title = title
     @author = author
+    @due_date = nil
+  end
+
+  def self.all_books
+    ObjectSpace.each_object(self).map(&:title)
   end
 
   # Returns this book's unique identification number.
   def get_id()
-
+    return @id
   end
 
   # Returns this book's title.
   def get_title()
-
+    return @title
   end
 
   # Returns this book's author.
   def get_author()
-
+    return @author
   end
 
   # Returns the date (as an integer) that this book is due.  
   def get_due_date()
-
+    return @due_date
   end
 
   # Sets the due date of this Book. Doesn't return anything.
   def check_out(due_date)
-
+    @due_date = due_date
   end
   
   # Sets the due date of this Book to nil. Doesn't return anything.
   def check_in()
-
+    @due_date = nil
   end
 
   # Returns a string of the form "id: title, by author”.
   def to_s()
-
+    return @id.to_s + ": " + @title + ", by " + @author
   end
 
 end
@@ -91,6 +96,7 @@ class Member
   def initialize(name, library)
     @name = name
     @library = library
+    @checked_books = []
   end
 
   # Returns this member's name.
@@ -141,31 +147,32 @@ class Library
     # Create a Book from each tuple, and save these books in some appropriate data 
     # structure of your choice. Give each book a unique id number (starting from 1, not 0). 
     # You may have many copies of the "same" book (same title and author), but each will have its own id.
-    @available_books = {}
+    @books = []
     collection = File.new('collection.txt')
     
     i = 1;
     collection.each do |row|
-      
       book = row.chomp.split(', ')
       unless book[0].empty?
-        @available_books[i] = { :title => book[0], :author => book[1] }
+        @books << Book.new(i, book[0], book[1])
         i = i + 1
       end
       #@books = Book.new(book[0], book[1])
     end
     
-    puts @available_books.count
+    #puts @books
     
-    @available_books.each do |book|
-      puts book[:title]
-      #puts " by "
-      puts book
-    end
+    # puts "Adding books..."
+    # @available_books.each do |k, v|
+    #   book = Book.new(k, @available_books[k][:title], @available_books[k][:author])
+    #   puts k.to_s + ". " + @available_books[k][:title] + " by " + @available_books[k][:author]
+    # end
 
-    test = @available_books.map { |pair| pair.first }
 
-    puts test
+
+    #test = @available_books.map { |pair| pair.first }
+
+    #puts test
 
     # • Create a Calendar object (you should create exactly one of these).
     @cal = Calendar.new
@@ -178,6 +185,7 @@ class Library
     # • Set the current member (the one being served) to nil
     @current_member = nil
     @members = ['ross', 'bob']
+    
   end
 
   # If the library is already open, raises an Exception with the message "The library is already open!".
@@ -185,10 +193,10 @@ class Library
   # library is open. (). Returns: The string "Today is day n.”
   def open()
     if @open
-      raise ArgumentError, "The library is already open!"
+      puts "The library is already open!"
     else
       @open = true
-      puts "Today is day #{@cal.get_date}" # + @cal.get_date
+      puts "Today is day " + @cal.get_date.to_s
     end
   end
 
@@ -216,7 +224,7 @@ class Library
     if not @open
       puts "The library is not open."
     end
-    puts @members
+    @current_member = name_of_member
   end
 
   # Prints a multiline string, each line containing one book (as returned by the book's to_s method), 
@@ -262,9 +270,26 @@ class Library
   # - A multiline string, each line containing one book (as returned by the book's to_s method.)
   def search(string)
 
-    # search (caseinsensitive) the list / array / hash
+    if not @open
+      puts "The library is not open."
+    elsif string.empty? || string.length < 4
+      puts "Search string must contain at least four characters."
+    else
+      # search (caseinsensitive) the list / array / hash
 
+      results = @books.select { |book| 
+        (book.get_title().downcase.include?(string.downcase) || book.get_author().downcase.include?(string.downcase)) && book.get_due_date() == nil
+      }
+      puts results
 
+      if results.size > 0
+        puts results
+      else
+        puts "No books found."
+      end
+      
+    end
+    
   end
 
   # Checks out the book(s) to the member currently being served (there must be one!), or tells why 
@@ -279,8 +304,11 @@ class Library
   def check_out(*book_ids) # 1..n book_ids
     if not @open
       puts "The library is not open."
-    end
+    elsif not @current_member
+      puts "No member is currently being served."
+    else
 
+    end
   end
 
   # Renews the books for the member currently being served (by setting their due dates to today's 
@@ -301,7 +329,12 @@ class Library
   # when the library is closed. If successful, returns the string "Good night.".
   # May throw an Exception with the message: "The library is not open.”
   def close()
-  
+    if @open
+      @open = false
+      puts "Good night."
+    else
+      puts "The library is not open."
+    end
   end
 
   # The mayor, citing a budget crisis, has stopped all funding for the library. Can happen at any time. 
@@ -309,11 +342,12 @@ class Library
   def quit()
 
   end
-
 end
 
 lib = Library.new
+lib.search("tact")
 lib.open
 lib.open
 lib.serve('ross')
 lib.check_in([1,2,3])
+lib.search("tact")

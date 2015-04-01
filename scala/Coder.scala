@@ -16,7 +16,7 @@ object Coder {
     
   //var Grid = scala.collection.mutable.Map[(Int, Int), Char]()
   type Grid = Map[(Int, Int), Char]
-  
+
   /**
    * The main constructor method, just run the prompt
    */
@@ -105,6 +105,62 @@ object Coder {
     println(output)
   }
   
+
+  
+  def lookup(x: Char, c: Grid) : (Int, Int) = {
+    
+    var found = c.find(_._2 == x)
+    // check if found..?
+    found.get._1
+  }
+
+  def get(x: Int, y: Int, c: Grid) = c((x % 5, y % 5))
+
+  def code(a: Char, b: Char, d: Int, c: Grid) = {
+    //println(a,b,d)
+    val ((ax, ay), (bx, by)) = (lookup(a, c), lookup(b, c))
+    if (ay == by) List(get(ax + d, ay, c), get(bx + d, by, c))
+    else if (ax == bx) List(get(ax, ay + d, c), get(bx, by + d, c))
+    else List(get(ax, by, c), get(bx, ay, c))
+  }
+ 
+  def encode() = {
+
+    var keyword = retrieveKeyword()
+    //println(keyword)
+    
+    var grid = renderGrid(keyword)
+    //displayGrid(grid)
+    
+    var lettersToEncode = sanitise(retrieveFile()).toList
+    //println(lettersToEncode)
+
+    var test : String = doEncode(lettersToEncode, grid).mkString
+    println(test)
+  }
+
+  def decode() = {
+    var keyword = retrieveKeyword()
+    var grid = renderGrid(keyword)
+    var lettersToDecode = sanitise(retrieveFile())
+    var test : String = doDecode(lettersToDecode, grid)
+    println(test)
+  }
+ 
+  def doEncode(t: List[Char], c: Grid) : List[Char] = t match {
+    case x :: Nil => doEncode(x :: List('x'), c)
+    case x :: y :: xs => if (x == y) doEncode(x :: List('x'), c) ++ doEncode(y :: xs, c)
+      else code(x, y, 1, c) ++ doEncode(xs, c)
+    case Nil => Nil
+  }
+ 
+  def doDecode(t: String, c: Grid) : String = t grouped(2) flatMap (x => code (x(0), x(1), -1, c)) mkString
+
+
+
+
+
+
   /**
    * The main encoder 
    * 
@@ -112,18 +168,18 @@ object Coder {
    * 
    * @return File: encoded
    */
-  def encode() = {
-    var keyword = retrieveKeyword()
-    println(keyword)
+  // def encode() = {
+  //   var keyword = retrieveKeyword()
+  //   println(keyword)
     
-    var test = renderGrid(keyword)
-    displayGrid(test)
+  //   var test = renderGrid(keyword)
+  //   displayGrid(test)
     
-    var fileContents = retrieveFile()
-  }
-    
-  def decode() = {
-    retrieveKeyword()
-    retrieveFile()
-  }
+  //   var fileContents = retrieveFile()
+  // }
+
+  // def decode() = {
+  //   retrieveKeyword()
+  //   retrieveFile()
+  // }
 }
