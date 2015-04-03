@@ -1,10 +1,13 @@
 # library.rb  
 
+require 'set'
+
 # class Calendar  
 #
 #   We need to deal with the passage of time, so we need to keep track of
 #   dates. Ruby has a perfectly good Time class, but to keep things simple,
 #   we will just use an integer to keep track of how many days have passed.
+
 class Calendar  
 
   def initialize()  
@@ -14,7 +17,7 @@ class Calendar
   
   # Returns (as an integer) the current date.  
   def get_date()
-    puts @time
+    @time
   end
 
   # Increment the date (move ahead to the next day), and returns the new date.
@@ -96,22 +99,24 @@ class Member
   def initialize(name, library)
     @name = name
     @library = library
-    @checked_books = []
+    @checked_books = Set.new
   end
 
   # Returns this member's name.
   def get_name()
-    return @name
+    @name
   end
 
   # Adds this Book object to the set of books checked out by this member.
   def check_out(book)
-
+    @checked_books.add book
+    #puts @checked_books
+    #puts "book checked out!"
   end
 
   # Removes this Book object from the set of books checked out by this member. 
   # (Since members are usually said to "return" books, this method should be called return !)   
-  def give_back(book)
+  def return(book)
 
   end
 
@@ -143,49 +148,37 @@ class Library
 
   # Constructs the Library object (you should create exactly one of these).
   def initialize()
-    # • Read in, from a file named collection.txt, a list of (title,author) tuples, 
-    # Create a Book from each tuple, and save these books in some appropriate data 
-    # structure of your choice. Give each book a unique id number (starting from 1, not 0). 
-    # You may have many copies of the "same" book (same title and author), but each will have its own id.
-    @books = []
+    @books = {}
+    # Read in, from a file named collection.txt, a list of (title,author) tuples, 
     collection = File.new('collection.txt')
     
-    i = 1;
+    i = 1
     collection.each do |row|
       book = row.chomp.split(', ')
       unless book[0].empty?
-        @books << Book.new(i, book[0], book[1])
+        # Create a Book from each tuple
+        @books[i] = Book.new(i, book[0], book[1])
         i = i + 1
       end
-      #@books = Book.new(book[0], book[1])
     end
     
-    #puts @books
-    
-    # puts "Adding books..."
-    # @available_books.each do |k, v|
-    #   book = Book.new(k, @available_books[k][:title], @available_books[k][:author])
-    #   puts k.to_s + ". " + @available_books[k][:title] + " by " + @available_books[k][:author]
-    # end
-
-
-
-    #test = @available_books.map { |pair| pair.first }
-
-    #puts test
-
-    # • Create a Calendar object (you should create exactly one of these).
+    # Create a Calendar object (you should create exactly one of these).
     @cal = Calendar.new
 
-    # • Define an empty dictionary of members. 
+    # Define an empty dictionary of members. 
     #    - The keys will be the names of members and the values will be the corresponding Member objects.
-    
-    # • Set a flag variable to indicate that the library is not open.
-    @open = false
-    # • Set the current member (the one being served) to nil
+    @members = {
+      'ross' =>  Member.new('ross', self), 
+      'keith' => Member.new('keith', self), 
+      'trevor' => Member.new('trevor', self)
+    }
+
+    # Set a flag variable to indicate that the library is not open.
+    @open = nil
+    # Set the current member (the one being served) to nil
     @current_member = nil
-    @members = ['ross', 'bob']
-    
+
+    @library_cards = {}
   end
 
   # If the library is already open, raises an Exception with the message "The library is already open!".
@@ -196,6 +189,7 @@ class Library
       puts "The library is already open!"
     else
       @open = true
+      @cal.advance
       puts "Today is day " + @cal.get_date.to_s
     end
   end
@@ -203,6 +197,7 @@ class Library
   # Prints a nicely formatted, multiline string, listing the names of members who have overdue books, and for each such member, the
   # books that are overdue. Or, the string "No books are overdue.”.
   def find_all_overdue_books()
+    # loop through the members and check if they have any overdue books, then print them out
 
   end
 
@@ -211,7 +206,26 @@ class Library
   # Possible Exception: "The library is not open.".
   def issue_card(name_of_member)
 
+    if not @open
+      puts "The library is not open."
+    else
+      # check if they already have a card?
+      if @library_cards.has_key?(name_of_member.to_sym) 
+        puts "#{name_of_member} already has a library card."
+      elsif @members.has_key?(name_of_member.to_sym) 
+        puts "#{name_of_member} is not a member."
+      else
+        @library_cards[name_of_member.to_sym] = nil
+        puts "Library card issued to #{name_of_member}."
+      end
+    end
   end
+
+  ## debug function @@TODO remove these!
+  def get_cards 
+    puts @library_cards
+  end
+
 
   # Specifies which member is about to be served (and quits serving the previous member, if any). 
   # The purpose of this method is so that you don't have to type in the person's name again and again 
@@ -223,8 +237,17 @@ class Library
   def serve(name_of_member)
     if not @open
       puts "The library is not open."
+    else
+      # lookup the member
+      if @current_member == name_of_member
+        puts "Already serving #{name_of_member}."
+      elsif @library_cards.has_key?(name_of_member.to_sym)
+        @current_member = name_of_member
+        puts "Now serving #{name_of_member}."
+      else
+        puts "#{name_of_member} does not have a library card."
+      end
     end
-    @current_member = name_of_member
   end
 
   # Prints a multiline string, each line containing one book (as returned by the book's to_s method), 
@@ -234,7 +257,20 @@ class Library
   #  - "The library is not open.”
   #  - "No member is currently being served.”
   def find_overdue_books()
-
+    if not @open
+      puts "The library is not open."
+    elsif not @current_member
+      puts "No member is currently being served."
+    else
+      #results = @books.select { |book| 
+      #   && book.get_due_date() != nil
+      #}
+      if results.size > 0
+        puts results.uniq { |b| b.get_author && b.get_title }
+      else
+        puts "None."
+      end
+    end
   end
 
   # The book is being returned by the current member (there must be one!), so return it 
@@ -269,27 +305,22 @@ class Library
   # - "Search string must contain at least four characters."
   # - A multiline string, each line containing one book (as returned by the book's to_s method.)
   def search(string)
-
     if not @open
       puts "The library is not open."
     elsif string.empty? || string.length < 4
       puts "Search string must contain at least four characters."
     else
-      # search (caseinsensitive) the list / array / hash
-
-      results = @books.select { |book| 
+      results = @books.select { |k,book| 
         (book.get_title().downcase.include?(string.downcase) || book.get_author().downcase.include?(string.downcase)) && book.get_due_date() == nil
       }
-      puts results
-
-      if results.size > 0
-        puts results
+      if results.count > 0
+        results.to_a.uniq { |k,v| 
+          v.get_author() && v.get_title() 
+        }.each { |k,v| puts v.to_s }
       else
         puts "No books found."
       end
-      
     end
-    
   end
 
   # Checks out the book(s) to the member currently being served (there must be one!), or tells why 
@@ -306,8 +337,27 @@ class Library
       puts "The library is not open."
     elsif not @current_member
       puts "No member is currently being served."
+    elsif not book_ids
+      puts "Please specifiy at least one valid book ID."
     else
+      total_results = 0
+      # lookup the books and check they exist and are available 
+      book_ids.each do |v|
+        puts v.to_i
+        results = @books.select { |k,book| 
+          book.get_due_date() == nil && book.get_id() == v.to_i 
+        }
+        results.to_a.each do |book| 
+          @members["#{@current_member}"].check_out(book)
+          total_results = total_results + 1
+        end
+      end
 
+      if total_results > 0
+        puts total_results.to_s + " books have been checked out to #{@current_member}."
+      else
+        puts "No books found."
+      end
     end
   end
 
@@ -344,10 +394,13 @@ class Library
   end
 end
 
-lib = Library.new
-lib.search("tact")
-lib.open
-lib.open
-lib.serve('ross')
-lib.check_in([1,2,3])
-lib.search("tact")
+class Test 
+  def initialize()
+    lib = Library.new
+    lib.open
+    lib.search('saga')
+    lib.issue_card('ross')
+    lib.serve('ross')
+    lib.check_out(1,2,3,4,5,6)
+  end
+end
