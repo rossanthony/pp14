@@ -27,7 +27,6 @@ class Calendar
   
 end  
 
-
 # class Book  
 #
 #   A book has these attributes (instance variables): id, title, author
@@ -36,8 +35,6 @@ end
 class Book
 
   def initialize(id, title, author)
-  #def initialize(new_book)
-  #  puts new_book
     @id = id
     @title = title
     @author = author
@@ -78,9 +75,8 @@ class Book
   def to_s()
     return @id.to_s + ": " + @title + ", by " + @author
   end
-
+  
 end
-
 
 # class Member
 #    
