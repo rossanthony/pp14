@@ -1,0 +1,1 @@
+An anonymous reader sends word of a proof-of-concept Google Chrome browser extension that steals users’ login details. The developer, Andreas Grech, says that he is trying to raise awareness about security among end users, and therefore chose Chrome as a test-bed because of its reputation as the safest browser.
