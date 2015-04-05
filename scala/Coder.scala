@@ -11,10 +11,12 @@ import scala.language.postfixOps
 
 
 object Coder {
+  // set a default keyword (used for testing)
   var keyword : String = "Pennsylvania"
+  // set the alphabet used for building the cipher grid
   var alphabet : String = "abcdefghiklmnopqrstuvwxyz" // excluding 'j'
     
-  //var Grid = scala.collection.mutable.Map[(Int, Int), Char]()
+  // declare a new type, consisting of an Int tuple + Char  
   type Grid = Map[(Int, Int), Char]
 
   /**
@@ -57,16 +59,6 @@ object Coder {
     }
   }
   
-  def writeFile() {
-    val file = new File("output.txt")
-    val writer = new PrintWriter(file)
-    writer write "first\r\n"
-    writer write "second"
-    writer.close()
-    val lines = Source.fromFile(file).getLines().toList
-    println(lines)
-  }
-  
   /** 
    * Sanitise
    * 
@@ -105,8 +97,6 @@ object Coder {
     println(output)
   }
   
-
-  
   def lookup(x: Char, c: Grid) : (Int, Int) = {
     
     var found = c.find(_._2 == x)
@@ -114,29 +104,30 @@ object Coder {
     found.get._1
   }
 
-  def get(x: Int, y: Int, c: Grid) = c((x % 5, y % 5))
+  def get(x: Int, y: Int, grid: Grid) = grid((x % 5, y % 5))
 
-  def code(a: Char, b: Char, d: Int, c: Grid) = {
-    //println(a,b,d)
-    val ((ax, ay), (bx, by)) = (lookup(a, c), lookup(b, c))
-    if (ay == by) List(get(ax + d, ay, c), get(bx + d, by, c))
-    else if (ax == bx) List(get(ax, ay + d, c), get(bx, by + d, c))
-    else List(get(ax, by, c), get(bx, ay, c))
+  /**
+   * 
+   * dir = 1 or -1 (direction: depending on whether we're encoding or decoding, respectively)
+   */
+  def code(a: Char, b: Char, dir: Int, grid: Grid) = {
+    val ((x1, y1), (x2, y2)) = (lookup(a, grid), lookup(b, grid))
+    if (y1 == y2) 
+      List(get(x1 + dir, y1, grid), get(x2 + dir, y2, grid))
+    else if (x1 == x2) 
+      List(get(x1, y1 + dir, grid), get(x2, y2 + dir, grid))
+    else 
+      List(get(x1, y2, grid), get(x2, y1, grid))
   }
  
   def encode() = {
-
     var keyword = retrieveKeyword()
-    //println(keyword)
-    
     var grid = renderGrid(keyword)
-    //displayGrid(grid)
-    
     var lettersToEncode = sanitise(retrieveFile()).toList
-    //println(lettersToEncode)
-
-    var test : String = doEncode(lettersToEncode, grid).mkString
-    println(test)
+    var encodedMsg : String = doEncode(lettersToEncode, grid).mkString
+    var chunks = splitString(encodedMsg)
+    println("\n")
+    outputEncodedMsg(chunks)
   }
 
   def decode() = {
@@ -156,30 +147,28 @@ object Coder {
  
   def doDecode(t: String, c: Grid) : String = t grouped(2) flatMap (x => code (x(0), x(1), -1, c)) mkString
 
-
-
-
-
+  /** 
+   * Splice up the string into 5 char chunks, return as a List
+   */
+  def splitString(msg: String): List[String] = {
+    msg.length match {
+      case n if n <= 5 => List(msg)
+      case _ => msg.substring(0, 5) :: splitString(msg.substring(5))
+    }
+  }
 
   /**
-   * The main encoder 
-   * 
-   * run whenever the user enters "encode"
-   * 
-   * @return File: encoded
+   * Output the message in the required format, 10 x blocks of 5 per line
    */
-  // def encode() = {
-  //   var keyword = retrieveKeyword()
-  //   println(keyword)
-    
-  //   var test = renderGrid(keyword)
-  //   displayGrid(test)
-    
-  //   var fileContents = retrieveFile()
-  // }
+  def outputEncodedMsg(chunks: List[String]) {
+    if (chunks.length <= 10)
+      println(chunks mkString(" "))
+    else {
+      val (head, tail) = chunks.splitAt(10)
+      println(head mkString(" "))
+      outputEncodedMsg(tail)
+    }
+  }
 
-  // def decode() = {
-  //   retrieveKeyword()
-  //   retrieveFile()
-  // }
 }
+
