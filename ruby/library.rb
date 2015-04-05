@@ -1,4 +1,7 @@
 # library.rb  
+#
+#
+# @author Ross Anthony
 
 require 'set'
 
