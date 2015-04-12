@@ -13,7 +13,7 @@ class Coder(val keyword: String) {
   // set the alphabet used for building the cipher grid
   var alphabet : String = "abcdefghiklmnopqrstuvwxyz" // excluding 'j'
 
-  var grid : Grid
+  var grid : Grid = null
 
   def main() = {
     grid = buildGrid(keyword)
@@ -81,28 +81,6 @@ class Coder(val keyword: String) {
     else 
       List(getChar(x1, y2, grid), getChar(x2, y1, grid))
   }
- 
-  // def encode(plainText: String) : String = {
-    
-  //   var lettersToEncode = retrieveFile().toList
-  //   //println(lettersToEncode)
-  //   var encodedMsg : String = doEncode(lettersToEncode, grid).mkString
-    
-    
-    
-    
-  // }
-
-  // def decode() = {
-  //   var grid = buildGrid(keyword)
-  //   var lettersToDecode = retrieveFile()
-  //   //println(lettersToDecode)
-  //   var decodedMsg : String = doDecode(lettersToDecode, grid)
-  //   var chunks = splitString(decodedMsg)
-  //   println("\n")
-  //   outputEncodedMsg(chunks)
-  //   prompt()
-  // }
   
   /**
    * Recursive func for doing the encoding
@@ -126,12 +104,10 @@ class Coder(val keyword: String) {
   }
 
   /**
-   * Recursive func for doing the decoding
+   * Decoding is somewhat simpler than encoding, with the help of flatMap
    */
-  def decode(msg: String, grid: Grid) : String = {
+  def decode(msg: String) : String = {
     val letterPairs = msg.grouped(2).toList
-    //displayGrid(grid)
-    //println(letterPairs)
     letterPairs.flatMap(x => shuffle(x(0), x(1), -1, grid)).mkString
   }
 
@@ -143,27 +119,4 @@ class Coder(val keyword: String) {
   def sanitise(input: String) : String = {
     input.replaceAll("[^A-Za-z]", "").toLowerCase.replace('j','i')
   }
-
-  // /** 
-  //  * Splice up the string into 5 char chunks, return as a List
-  //  */
-  // def splitString(msg: String): List[String] = {
-  //   msg.length match {
-  //     case n if n <= 5 => List(msg)
-  //     case _ => msg.substring(0, 5) :: splitString(msg.substring(5))
-  //   }
-  // }
-
-  // /**
-  //  * Output the message in the required format, 10 x blocks of 5 per line
-  //  */
-  // def outputEncodedMsg(chunks: List[String]) {
-  //   if (chunks.length <= 10)
-  //     println(chunks mkString(" "))
-  //   else {
-  //     val (head, tail) = chunks.splitAt(10)
-  //     println(head mkString(" "))
-  //     outputEncodedMsg(tail)
-  //   }
-  // }
 }
