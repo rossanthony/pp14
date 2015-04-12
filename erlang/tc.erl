@@ -1,14 +1,18 @@
+%% Programming Paradigms 2014-15, Erlang Assignment: Message passing
+%% Message passing program that can perform temperature conversions.
+%% @author Ross Anthony <ross@velo33.com>
+%% To test   tc:init(). 
 -module(tc).
 -compile(export_all).
 
 converter() ->
     receive
 	{convertToFahrenheit, C} ->
-	    disp ! {c2f, C, round((C*9/5)+32)},
+	    disp ! {C, round((C*9/5)+32)},
 	    converter();
 	{convertToCelsius, F} ->
-	    disp ! {f2c, round((F-32)*5/9), F},
-            converter();
+	    disp ! {round((F-32)*5/9), F},
+        converter();
 	_ ->
 	    io:format("Unknown message received.~n"),
 	    converter()
@@ -16,11 +20,8 @@ converter() ->
 
 display() ->
     receive
-	{c2f, C, F} ->
-	    io:format("~p C == ~p F~n", [C,F]),
-	    display();
-	{f2c, C, F} ->
-	    io:format("~p F == ~p C~n", [F,C]),
+	{C, F} ->
+	    io:format("The temperature is ~pC / ~pF~n", [C,F]),
 	    display();
 	_ ->
 	    io:format("Unknown message received.~n"),
