@@ -1,5 +1,25 @@
 :- [maze].
 
+% PrintMaze(Path) 
+% takes a Path as a list of lists (e.g. [[3,2], [3,3], [2,3], [1,3], [1,4], [1,5], [1,6], [2,6]])
+% and prints out the maze as ascii art like so:
+%   
+%      1 2 3 4 5 6 7 8 9
+%     +-----------------+
+%   1 |. . * * * * . x .|
+%   2 |x x * x x * . . .|
+%   3 |. * * x . . x . x|
+%   4 |. . . x . . x x x|
+%   5 |. x . . . . . . .|
+%     +-----------------+
+
+printMaze(Path):-
+	nl,
+	header,
+	divider,
+	row(1, Path),
+	divider.
+
 % output the column numbers along the top row
 header :-
 	write('     '),
@@ -44,9 +64,3 @@ rowItems(X, Y, Path) :-
 % check if a given set of Coords exists in the Path
 inPath(Coords, [Coords|_]) :- !.
 inPath(Coords, [_|Tail]) :- inPath(Coords, Tail).
-
-printMaze(Path):-
-   header,
-   divider,
-   row(1, Path),
-   divider.
