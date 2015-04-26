@@ -28,4 +28,4 @@ lib.find_overdue_books
 lib.renew(1)
 lib.find_overdue_books
 lib.find_all_overdue_books
-lib.check_in(3)
+lib.check_in(1,3)
