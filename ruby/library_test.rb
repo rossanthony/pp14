@@ -3,41 +3,22 @@
 require_relative "library"
 require "test/unit"
  
-class TestLibrary < Test::Unit::TestCase
+class LibraryTester < Test::Unit::TestCase
  
   def setup
-    lib = Library.new
-    lib.open
-    #lib.search('saga')
-    lib.issue_card('ross')
-    lib.serve('ross')
-    lib.check_out(1,2,3)
-
-    # Advance by 1 week
-    lib.close
-    lib.open
-    lib.close
-    lib.open
-    lib.close
-    lib.open
-    lib.close
-    lib.open
-    lib.close
-    lib.open
-    lib.close
-    lib.open
-    lib.close
-    lib.open
-    lib.close
-    lib.open
-
-    lib.find_overdue_books
-    lib.find_all_overdue_books
-    lib.check_in(3)
-    lib.renew(1)
-    lib.find_all_overdue_books
+    @lib = Library.new
   end
- 
+
+  def test_initialize_makes_calendar
+    assert_nothing_raised { @lib.calendar.get_date }
+  end
+
+
+  def test_load_all_books
+    assert @lib.books.size == 7, 'Did not load all books in collection'
+  end
+
+
   def teardown
     ## Nothing really
   end
