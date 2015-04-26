@@ -170,7 +170,7 @@ class Library
     }
 
     # Set a flag variable to indicate that the library is not open.
-    @open = nil
+    @open = false
     # Set the current member (the one being served) to nil
     @current_member = nil
 
@@ -239,7 +239,7 @@ class Library
   # Possible Exception: "The library is not open."
   def serve(name_of_member)
     if not @open
-      "The library is not open."
+      raise Exception, "The library is not open.", caller
     else
       # lookup the member
       if @current_member == name_of_member
@@ -261,9 +261,9 @@ class Library
   #  - "No member is currently being served.”
   def find_overdue_books()
     if not @open
-      output = "The library is not open."
+      raise Exception, "The library is not open.", caller
     elsif not @current_member
-      output = "No member is currently being served."
+      raise Exception, "No member is currently being served.", caller
     else
       overdue_books = @members["#{@current_member}"].get_books.select { |book| 
         @cal.get_date > book.get_due_date()
@@ -291,12 +291,13 @@ class Library
   # - "The member does not have book id.”
   def check_in(*book_ids) # * = 1..n of book_ids
     if not @open
-      "The library is not open."
+      raise Exception, "The library is not open.", caller
     elsif not @current_member
-      "No member is currently being served."
-    elsif not book_ids.all? {|i| i.is_a? Fixnum }
-      "Please specifiy at least one book ID."
+      raise Exception, "No member is currently being served.", caller
+    elsif book_ids.empty?
+      raise Exception, "Please specifiy at least one book ID.", caller
     else
+      error = "The member does not have book ids " + book_ids.to_s
       total = 0
       # lookup the books, check they exist and are checked out 
       book_ids.each do |id|
@@ -306,17 +307,13 @@ class Library
           if @members["#{@current_member}"].return(book)
             book.check_in
             total = total + 1
-          else
-            # 
-            "The member does not have book id #{id}."
           end
         end
       end
       if total > 0
-        "#{@current_member} has returned #{total.to_s} books."
-      else
-        "No books found."
+        error = "#{@current_member} has returned #{total.to_s} books."
       end
+      error
     end
   end
 
@@ -332,7 +329,7 @@ class Library
   # - A multiline string, each line containing one book (as returned by the book's to_s method.)
   def search(string)
     if not @open
-      output = "The library is not open."
+      raise Exception, "The library is not open.", caller
     elsif string.empty? || string.length < 4
       output = "Search string must contain at least four characters."
     else
@@ -364,11 +361,11 @@ class Library
   # - "The library does not have book id."
   def check_out(*book_ids) # 1..n book_ids
     if not @open
-      "The library is not open."
+      raise Exception, "The library is not open.", caller
     elsif not @current_member
-      "No member is currently being served."
-    elsif not book_ids.all? {|i| i.is_a? Fixnum }
-      "Please specifiy at least one book ID."
+      raise Exception, "No member is currently being served.", caller
+    elsif book_ids.empty?
+      raise Exception, "Please specifiy at least one book ID.", caller
     elsif @members["#{@current_member}"].get_books.count > 3
       "#{@current_member} has checked out the max number of books."
     else
@@ -401,11 +398,11 @@ class Library
   # - "The member does not have book id."
   def renew(*book_ids) # 1..n book_ids
     if not @open
-      "The library is not open."
+      raise Exception, "The library is not open.", caller
     elsif not @current_member
-      "No member is currently being served."
-    elsif not book_ids.all? {|i| i.is_a? Fixnum }
-      "Please specifiy at least one book ID."
+      raise Exception, "No member is currently being served.", caller
+    elsif not book_ids.empty?
+      raise Exception, "Please specifiy at least one book ID.", caller
     else
       total = 0
       # lookup the books, check they exist and are checked out 
@@ -435,10 +432,10 @@ class Library
       @open = false
       "Good night."
     else
-      "The library is not open."
+      raise Exception, "The library is not open.", caller
     end
   end
-
+  
   # The mayor, citing a budget crisis, has stopped all funding for the library. Can happen at any time. 
   # Returns the string "The library is now closed for renovations.”
   def quit()
